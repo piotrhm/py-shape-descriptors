@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import urllib.request
 import zipfile
+import re
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -58,8 +59,42 @@ def _load_dataset(*, url, dataset_name, ext, kind='all', black=0, white=1, size=
         size -= 1
         if size == 0:
             break
+    return ret
+
+
+def _load_dataset_from_path(*, path, kind='all'):
+    """
+    :param path:
+    :param kind:
+    :return: dictionary with file name as a key and array of 0 and 1 representing image as a corresponding value
+    """
+    ret = {}
+
+    if kind == 'all':
+        kind = "", ""
+
+    files = [f for f in os.listdir(path) if re.search(kind, f)]
+
+    for file in files:
+        img = Image.open(path + os.sep + file)
+        try:
+            data = np.asarray(img, dtype='uint8')
+        except SystemError:
+            data = np.asarray(img.getdata(), dtype='uint8')
+        img.close()
+
+        if np.unique(data).tolist() == [0, 255]:
+            data = data // 255
+        elif np.unique(data).tolist() == [0, 1]:
+            data = data ^ 1
+
+        ret[os.path.basename(file)] = data
 
     return ret
+
+
+def get_path():
+    return os.path.dirname(os.path.abspath(__file__))
 
 
 if __name__ == "__main__":

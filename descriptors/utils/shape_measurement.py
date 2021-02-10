@@ -1,4 +1,5 @@
 from math import sqrt
+from cv2 import findContours 
 
 import numpy as np
 
@@ -71,3 +72,22 @@ def perimeter(img):
                 perimeter_ += c
 
     return perimeter_
+
+
+def calc_centeroid(arr):
+    length = arr.shape[0]
+    x = np.sum(arr[:, 0])
+    y = np.sum(arr[:, 1])
+
+    return x/length, y/length
+
+
+def get_contour(image, mode, method):
+    contour, _ = findContours(image, mode, method)
+    lenghts = [element.shape[0] for element in contour]
+    idx = np.argmax(lenghts)
+    contour = np.array(contour[idx])
+    contour = contour.reshape(-1, 2)
+    N = contour.shape[0]
+
+    return N, contour
